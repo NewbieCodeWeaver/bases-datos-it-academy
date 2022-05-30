@@ -233,3 +233,52 @@ SELECT asignatura.nombre AS `Nombre asignatura`, persona.nombre AS `Profesor aso
 /*Retorna un llistat amb tots els departaments que no han impartit assignatures en cap curs escolar.*/
 
 SELECT departamento.nombre AS `Nombre departamento`, asignatura.nombre AS `Nombre asignatura` FROM  `profesor`  JOIN `departamento` ON profesor.id_departamento = departamento.id LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
+
+
+/*  CONSULTAS RESUMEN   */
+
+
+
+/* Retorna el nombre total d'alumnes que hi ha. */
+
+SELECT COUNT(persona.id) AS `Número total de alumnos` FROM `persona`;
+
+/* Calcula quants alumnes van néixer en 1999.*/
+
+SELECT COUNT(persona.fecha_nacimiento) AS `Alumnos nacidos en 1999` FROM `persona`  WHERE persona.fecha_nacimiento LIKE "1999%";
+
+/* Calcula quants professors hi ha en cada departament. El resultat només ha de mostrar dues columnes, una amb el nom del departament i una altra amb el nombre de professors que hi ha en aquest departament. El resultat només ha d'incloure els departaments que tenen professors associats i haurà d'estar ordenat de major a menor pel nombre de professors.*/
+
+SELECT departamento.nombre AS `Nombre del departamento`, COUNT(profesor.id_profesor) AS `Número de profesores` FROM `persona` JOIN `profesor` ON  persona.id = profesor.id_profesor JOIN `departamento` ON profesor.id_departamento = departamento.id group by departamento.nombre;
+
+/* Retorna un llistat amb tots els departaments i el nombre de professors que hi ha en cadascun d'ells. Tingui en compte que poden existir departaments que no tenen professors associats. Aquests departaments també han d'aparèixer en el llistat.*/
+
+SELECT departamento.nombre AS `Nombre del departamento`, COUNT(profesor.id_profesor) AS `Número de profesores` FROM `persona` JOIN `profesor` ON  persona.id = profesor.id_profesor RIGHT JOIN `departamento` ON profesor.id_departamento = departamento.id group by departamento.nombre;
+
+/* Retorna un llistat amb el nom de tots els graus existents en la base de dades i el nombre d'assignatures que té cadascun. Tingui en compte que poden existir graus que no tenen assignatures associades. Aquests graus també han d'aparèixer en el llistat. El resultat haurà d'estar ordenat de major a menor pel nombre d'assignatures.*/
+
+SELECT grado.nombre AS `Nombre del grado`, count(asignatura.nombre) AS `Número asignaturas asociadas` FROM `grado` LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado GROUP BY grado.nombre ORDER BY asignatura.nombre ASC ; 
+
+/* Retorna un llistat amb el nom de tots els graus existents en la base de dades i el nombre d'assignatures que té cadascun, dels graus que tinguin més de 40 assignatures associades. */
+
+SELECT grado.nombre AS `Nombre del grado`, COUNT(asignatura.id_grado) AS `Número de asignaturas` FROM `grado` LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado group by asignatura.id_grado HAVING COUNT(asignatura.id_grado > 40); 
+
+/* Retorna un llistat que mostri el nom dels graus i la suma del nombre total de crèdits que hi ha per a cada tipus d'assignatura. El resultat ha de tenir tres columnes: nom del grau, tipus d'assignatura i la suma dels crèdits de totes les assignatures que hi ha d'aquest tipus. */
+
+SELECT grado.nombre AS `Nombre del grado`, asignatura.tipo AS `Tipo de asignatura`, SUM(asignatura.creditos) AS `Suma total de créditos` FROM `grado` JOIN `asignatura` ON  asignatura.id_grado = grado.id group by asignatura.tipo;
+
+/* Retorna un llistat que mostri quants alumnes s'han matriculat d'alguna assignatura en cadascun dels cursos escolars. El resultat haurà de mostrar dues columnes, una columna amb l'any d'inici del curs escolar i una altra amb el nombre d'alumnes matriculats. */
+
+SELECT curso_escolar.anyo_inicio AS `Año de inicio`, COUNT(persona.id) AS `Número de alumnos matriculados` FROM `persona` JOIN alumno_se_matricula_asignatura ON persona.id = alumno_se_matricula_asignatura.id_alumno JOIN `asignatura` ON alumno_se_matricula_asignatura.id_asignatura = asignatura.id JOIN `curso_escolar` ON alumno_se_matricula_asignatura.id_curso_escolar = curso_escolar.id group by asignatura.nombre;
+
+/* Retorna un llistat amb el nombre d'assignatures que imparteix cada professor. El llistat ha de tenir en compte aquells professors que no imparteixen cap assignatura. El resultat mostrarà cinc columnes: id, nom, primer cognom, segon cognom i nombre d'assignatures. El resultat estarà ordenat de major a menor pel nombre d'assignatures. */
+
+SELECT persona.id AS `ID profesor`, persona.nombre AS `Nombre`, persona.apellido1 AS `1er apellido`, persona.apellido2 AS `2do apellido`, COUNT(asignatura.nombre) AS `Numero de asignaturas impartidas` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor  LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE persona.tipo="profesor" group by persona.nombre ORDER BY COUNT(asignatura.nombre) DESC ;
+
+/* Retorna totes les dades de l'alumne més jove. */
+
+SELECT * FROM `persona` where persona.tipo ="alumno" order by persona.fecha_nacimiento DESC LIMIT 1;
+
+/* Retorna un llistat amb els professors que tenen un departament associat i que no imparteixen cap assignatura. */
+
+SELECT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS `Nombre profesor`, departamento.nombre AS `Departamento asociado`, asignatura.nombre AS `Asignaturas asociadas` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `asignatura` ON  profesor.id_profesor = asignatura.id_profesor RIGHT JOIN `departamento` ON profesor.id_departamento = departamento.id WHERE asignatura.nombre IS NULL AND persona.nombre IS NOT NULL;
