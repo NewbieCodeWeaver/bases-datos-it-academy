@@ -164,3 +164,72 @@ SELECT producto.nombre AS `Nombre del producto` FROM `producto` JOIN `fabricante
 /* Llesta tots els productes del fabricant Asus que tenen un preu superior al preu mitjà de tots els seus productes. */
 
 SELECT producto.nombre AS `Nombre del producto` FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus" AND producto.precio >= (SELECT AVG(producto.precio) FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus");
+
+
+
+/*  BASE DE DATOS UNIVERSIDAD  */
+
+
+
+/* Retorna un llistat amb el primer cognom, segon cognom i el nom de tots els alumnes. El llistat haurà d'estar ordenat alfabèticament de menor a major pel primer cognom, segon cognom i nom. */
+
+SELECT persona.apellido1 AS `Primer apellido`, persona.apellido2 AS `Segundo apellido`, persona.nombre AS Nombre FROM `persona` ORDER BY persona.apellido1, persona.apellido2, persona.nombre ASC;
+
+/* Esbrina el nom i els dos cognoms dels alumnes que no han donat d'alta el seu número de telèfon en la base de dades. */
+
+SELECT persona.nombre AS `Nombre`, persona.apellido1 AS `1ª apellido`, persona.apellido2 AS `2º apellido` FROM persona WHERE persona.telefono is NULL;
+
+/* Retorna el llistat dels alumnes que van néixer en 1999. */
+
+SELECT persona.nombre AS `Nombre del alumno` FROM persona WHERE fecha_nacimiento LIKE "1999%";
+
+/* Retorna el llistat de professors que no han donat d'alta el seu número de telèfon en la base de dades i a més la seva nif acaba en K. */
+
+SELECT persona.nombre AS `Nombre del profesor` FROM `persona` WHERE persona.tipo="profesor" AND persona.telefono is NULL AND RIGHT(persona.nif,1) = "K";
+
+/* Retorna el llistat de les assignatures que s'imparteixen en el primer quadrimestre, en el tercer curs del grau que té l'identificador 7. */
+
+SELECT asignatura.nombre AS `Nombre de la asignatura` FROM `asignatura` JOIN `grado` ON asignatura.id_grado = grado.id where asignatura.cuatrimestre="1" AND asignatura.curso = "3" AND  id_grado="7";  
+
+/* Retorna un llistat dels professors juntament amb el nom del departament al qual estan vinculats. El llistat ha de retornar quatre columnes, primer cognom, segon cognom, nom i nom del departament. El resultat estarà ordenat alfabèticament de menor a major pels cognoms i el nom. */
+
+SELECT persona.apellido1 AS `Primer apellido`, persona.apellido2 AS `Segundo apellido`, persona.nombre AS `Nombre`, departamento.nombre AS `Departamento asociado` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor JOIN `departamento` ON profesor.id_departamento = departamento.id ORDER BY persona.apellido1, persona.apellido2, persona.nombre ASC;
+
+/* Retorna un llistat amb el nom de les assignatures, any d'inici i any de fi del curs escolar de l'alumne amb nif 26902806M. */
+
+SELECT asignatura.nombre AS `Nombre de la asignatura`, curso_escolar.anyo_inicio AS `Fecha de inicio`, curso_escolar.anyo_fin AS `Fecha de finalización` FROM `asignatura` JOIN `alumno_se_matricula_asignatura` ON asignatura.id = alumno_se_matricula_asignatura.id_asignatura JOIN `curso_escolar` ON curso_escolar.id = alumno_se_matricula_asignatura.id_curso_escolar JOIN `persona` ON persona.id = alumno_se_matricula_asignatura.id_alumno WHERE persona.nif="26902806M";
+
+/* Retorna un llistat amb el nom de tots els departaments que tenen professors que imparteixen alguna assignatura en el Grau en Enginyeria Informàtica (Pla 2015). */
+
+SELECT DISTINCT departamento.nombre AS `Nombre del departamento` FROM `departamento` JOIN `profesor` ON departamento.id = profesor.id_profesor JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor JOIN `grado` ON  asignatura.id_grado = grado.id  WHERE grado.id="4";
+
+/* Retorna un llistat amb tots els alumnes que s'han matriculat en alguna assignatura durant el curs escolar 2018/2019. */
+
+SELECT DISTINCT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS `Nombre` FROM `persona` JOIN `alumno_se_matricula_asignatura` ON persona.id = alumno_se_matricula_asignatura.id_alumno JOIN `curso_escolar` ON alumno_se_matricula_asignatura.id_curso_escolar = curso_escolar.id WHERE curso_escolar.anyo_inicio="2018";
+
+/* Resolgui les 6 següents consultes utilitzant les clàusules LEFT JOIN i RIGHT JOIN. */
+
+
+/* Retorna un llistat amb els noms de tots els professors i els departaments que tenen vinculats. El llistat també ha de mostrar aquells professors que no tenen cap departament associat. El llistat ha de retornar quatre columnes, nom del departament, primer cognom, segon cognom i nom del professor. El resultat estarà ordenat alfabèticament de menor a major pel nom del departament, cognoms i el nom. */
+
+SELECT departamento.nombre AS `Departamento asociado`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`, persona.nombre AS `Nombre`  FROM `persona`  JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
+
+/*Retorna un llistat amb els professors que no estan associats a un departament.*/
+
+SELECT departamento.nombre AS `Nombre departamento`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`,  persona.nombre AS `Nombre del profesor`  FROM `persona`  JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id WHERE tipo="profesor" AND departamento.nombre IS NULL ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
+
+/*Retorna un llistat amb els departaments que no tenen professors associats.*/
+
+SELECT departamento.nombre AS `Nombre de departamento`,  profesor.id_profesor AS `Profesor asociado` FROM `departamento` LEFT JOIN `profesor` ON profesor.id_departamento = departamento.id LEFT JOIN `persona` ON persona.id = profesor.id_profesor WHERE profesor.id_profesor IS NULL;
+
+/*Retorna un llistat amb els professors que no imparteixen cap assignatura.*/
+
+SELECT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS Nombre, asignatura.nombre AS `Nombre asignatura` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
+
+/*Retorna un llistat amb les assignatures que no tenen un professor assignat.*/
+
+SELECT asignatura.nombre AS `Nombre asignatura`, persona.nombre AS `Profesor asociado` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor RIGHT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE persona.nombre IS null;
+
+/*Retorna un llistat amb tots els departaments que no han impartit assignatures en cap curs escolar.*/
+
+SELECT departamento.nombre AS `Nombre departamento`, asignatura.nombre AS `Nombre asignatura` FROM  `profesor`  JOIN `departamento` ON profesor.id_departamento = departamento.id LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
