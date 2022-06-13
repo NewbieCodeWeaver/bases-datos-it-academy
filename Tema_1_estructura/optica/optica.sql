@@ -4,11 +4,11 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-
 -- -----------------------------------------------------
 -- Schema optica
 -- -----------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS `optica` DEFAULT CHARACTER SET utf8 ;
+
 -- -----------------------------------------------------
 -- Table `optica`.`direccion`
 -- -----------------------------------------------------
@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS `optica`.`clientes` (
   `telefono` INT(9) NOT NULL,
   `correo_electronico` VARCHAR(45) NOT NULL,
   `fecha_registro` DATE NOT NULL,
-  `recomendado_id_clientes` INT(10) UNSIGNED NULL,
+  `recomendado_id_clientes` INT(10) UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id_clientes`),
-  INDEX `fk_clientes_direccion1_idx` (`direccion_id_direccion` ASC) ,
   INDEX `fk_clientes_clientes1_idx` (`recomendado_id_clientes` ASC) ,
+  INDEX `fk_clientes_direccion1_idx` (`direccion_id_direccion` ASC) ,
   CONSTRAINT `fk_clientes_clientes1`
     FOREIGN KEY (`recomendado_id_clientes`)
     REFERENCES `optica`.`clientes` (`id_clientes`)
@@ -201,3 +201,4 @@ INSERT INTO `ventas` VALUES (1,"2022-06-14",1,1,1);
 INSERT INTO `ventas` VALUES (2,"2022-06-14",2,2,3);
 INSERT INTO `ventas` VALUES (3,"2022-02-11",3,3,2);
 INSERT INTO `ventas` VALUES (4,"2022-05-12",3,3,1);
+
