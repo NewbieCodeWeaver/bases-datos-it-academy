@@ -35,7 +35,7 @@ SELECT LOWER (nombre), precio FROM `producto`;
 
 /* Llista el nom de tots els fabricants en una columna, i en una altra columna obtingui en majúscules els dos primers caràcters del nom del fabricant. */
 
-SELECT nombre AS `Nombre del fabricante`, SUBSTRING(nombre,1,2)  AS abbr FROM `fabricante`;
+SELECT nombre AS `Nombre del fabricante`, UPPER(SUBSTRING(nombre,1,2))  AS abbr FROM `fabricante`;
 
 /* Llista els noms i els preus de tots els productos de la taula producto, arrodonint el valor del preu. */
 
@@ -47,7 +47,7 @@ SELECT nombre, TRUNCATE(precio,0) AS `precio` FROM `producto`;
 
 /* Llista el codi dels fabricants que tenen productos en la taula producto. */
 
-SELECT fabricante.codigo AS `Codigo fabricante` FROM `producto` JOIN `fabricante` ON producto.codigo_fabricante = fabricante.codigo;
+SELECT DISTINCT(fabricante.codigo) AS `Código fabricante` FROM `producto` JOIN `fabricante` ON producto.codigo_fabricante = fabricante.codigo;
 
 /* Llista el codi dels fabricants que tenen productos en la taula producto, eliminant els codis que apareixen repetits. */
 
@@ -67,11 +67,11 @@ SELECT nombre AS `Nombre del producto`, precio AS `Precio` FROM `producto` ORDER
 
 /* Retorna una llista amb les 5 primeres files de la taula fabricante. */
 
-SELECT * FROM `fabricante` LIMIT 3;
+SELECT * FROM `fabricante` LIMIT 5;
 
 /* Retorna una llista amb 2 files a partir de la quarta fila de la taula fabricante. La quarta fila també s'ha d'incloure en la resposta. */
 
-SELECT * FROM `fabricante` LIMIT 3,3; 
+SELECT * FROM `fabricante` LIMIT 3, 2;
 
 /* Llista el nom i el preu del producto més barat. (Utilitzi solament les clàusules ORDER BY i LIMIT). NOTA: Aquí no podria usar MIN(preu), necessitaria GROUP BY */
 
@@ -115,7 +115,11 @@ SELECT producto.nombre AS `Nombre del producto`, producto.precio AS `Precio del 
 
 /* Retorna un llistat amb tots els productes dels fabricants Asus, Hewlett-Packard y Seagate. Sense utilitzar l'operador IN. */
 
-SELECT producto.nombre AS `Nombre del producto`, fabricante.nombre AS `Fabricante` FROM `fabricante` JOIN `producto` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre="Asus" OR fabricante.nombre="Hewlett-Packard" OR fabricante.nombre="Seagate";
+SELECT producto.nombre AS `Nombre del producto`, fabricante.nombre AS `Fabricante` FROM `fabricante` JOIN `producto` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre IN ('Asus', 'Hewlett-Packard', 'Seagate');
+
+/* Retorna un llistat amb tots els productes dels fabricants Asus, Hewlett-Packard i Seagate. Usant l'operador IN. */
+
+SELECT producto.nombre as `Nombre del producto`, fabricante.nombre as `Nombre del fabricante` FROM `producto` JOIN `fabricante` ON producto.codigo_fabricante = fabricante.codigo WHERE fabricante.nombre IN ('Asus', 'Hewlett-Packard', 'Seagate');
 
 /* Retorna un llistat amb el nom i el preu de tots els productes dels fabricants el nom dels quals acabi per la vocal e. */
 
@@ -143,11 +147,11 @@ SELECT fabricante.nombre AS `Nombre del fabricante`, producto.nombre AS `Product
 
 /* Retorna tots els productes del fabricant Lenovo. (Sense utilitzar INNER JOIN). */
 
-SELECT producto.nombre AS `Productos de Lenovo` FROM `producto` WHERE producto.codigo_fabricante = 2;
+SELECT producto.nombre AS `Productos de Lenovo` FROM `producto` LEFT JOIN `fabricante` ON producto.codigo_fabricante = fabricante.codigo  WHERE fabricante.nombre = 'Lenovo';
 
 /* Retorna totes les dades dels productes que tenen el mateix preu que el producte més car del fabricant Lenovo. (Sense utilitzar INNER JOIN). */
 
-SELECT * FROM `producto` WHERE codigo_fabricante = 2 AND producto.precio = (SELECT producto.precio FROM `producto` WHERE codigo_fabricante = "2" ORDER BY precio DESC LIMIT 1);
+SELECT * FROM `producto` JOIN `fabricante` ON producto.codigo_fabricante = fabricante.codigo WHERE producto.precio = (SELECT producto.precio FROM `producto` WHERE fabricante.nombre = "Lenovo" ORDER BY precio DESC LIMIT 1);
 
 /* Llista el nom del producte més car del fabricant Lenovo. */
 
@@ -159,11 +163,11 @@ SELECT producto.nombre AS `Nombre del producto` FROM `fabricante` JOIN `producto
 
 /* Retorna tots els productes de la base de dades que tenen un preu major o igual al producte més car del fabricant Lenovo. */
 
-SELECT producto.nombre AS `Nombre del producto` FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE producto.precio >= (SELECT producto.precio FROM `fabricante` JOIN `producto` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Lenovo" AND producto.precio ORDER BY producto.precio DESC LIMIT 1) AND fabricante.nombre != "Lenovo";
+SELECT producto.nombre AS `Nombre del producto` FROM `producto` WHERE producto.precio >= (SELECT producto.precio FROM `fabricante` JOIN `producto` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Lenovo" AND producto.precio ORDER BY producto.precio DESC LIMIT 1)
 
 /* Llesta tots els productes del fabricant Asus que tenen un preu superior al preu mitjà de tots els seus productes. */
 
-SELECT producto.nombre AS `Nombre del producto` FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus" AND producto.precio >= (SELECT AVG(producto.precio) FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus");
+SELECT * FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus" AND producto.precio >= (SELECT AVG(producto.precio) FROM `producto` JOIN `fabricante` ON fabricante.codigo = producto.codigo_fabricante WHERE fabricante.nombre = "Asus");
 
 
 
@@ -173,15 +177,15 @@ SELECT producto.nombre AS `Nombre del producto` FROM `producto` JOIN `fabricante
 
 /* Retorna un llistat amb el primer cognom, segon cognom i el nom de tots els alumnes. El llistat haurà d'estar ordenat alfabèticament de menor a major pel primer cognom, segon cognom i nom. */
 
-SELECT persona.apellido1 AS `Primer apellido`, persona.apellido2 AS `Segundo apellido`, persona.nombre AS Nombre FROM `persona` ORDER BY persona.apellido1, persona.apellido2, persona.nombre ASC;
+SELECT persona.apellido1 AS `Primer apellido`, persona.apellido2 AS `Segundo apellido`, persona.nombre AS Nombre FROM `persona` WHERE persona.tipo = 'alumno' ORDER BY persona.apellido1, persona.apellido2, persona.nombre ASC;
 
 /* Esbrina el nom i els dos cognoms dels alumnes que no han donat d'alta el seu número de telèfon en la base de dades. */
 
-SELECT persona.nombre AS `Nombre`, persona.apellido1 AS `1ª apellido`, persona.apellido2 AS `2º apellido` FROM persona WHERE persona.telefono is NULL;
+SELECT persona.nombre AS `Nombre`, persona.apellido1 AS `1ª apellido`, persona.apellido2 AS `2º apellido` FROM persona WHERE persona.telefono is NULL AND persona.tipo = 'alumno';
 
 /* Retorna el llistat dels alumnes que van néixer en 1999. */
 
-SELECT persona.nombre AS `Nombre del alumno` FROM persona WHERE fecha_nacimiento LIKE "1999%";
+SELECT persona.nombre AS `Nombre del alumno` FROM persona WHERE fecha_nacimiento LIKE "1999%" AND persona.tipo='alumno';
 
 /* Retorna el llistat de professors que no han donat d'alta el seu número de telèfon en la base de dades i a més la seva nif acaba en K. */
 
@@ -201,22 +205,24 @@ SELECT asignatura.nombre AS `Nombre de la asignatura`, curso_escolar.anyo_inicio
 
 /* Retorna un llistat amb el nom de tots els departaments que tenen professors que imparteixen alguna assignatura en el Grau en Enginyeria Informàtica (Pla 2015). */
 
-SELECT DISTINCT departamento.nombre AS `Nombre del departamento` FROM `departamento` JOIN `profesor` ON departamento.id = profesor.id_profesor JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor JOIN `grado` ON  asignatura.id_grado = grado.id  WHERE grado.id="4";
+SELECT DISTINCT departamento.nombre AS `Nombre del departamento` FROM `departamento` JOIN `profesor` ON departamento.id = profesor.id_profesor JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor JOIN `grado` ON  asignatura.id_grado = grado.id  WHERE grado.nombre="Grado en Ingeniería Informática (Plan 2015)";
 
 /* Retorna un llistat amb tots els alumnes que s'han matriculat en alguna assignatura durant el curs escolar 2018/2019. */
 
 SELECT DISTINCT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS `Nombre` FROM `persona` JOIN `alumno_se_matricula_asignatura` ON persona.id = alumno_se_matricula_asignatura.id_alumno JOIN `curso_escolar` ON alumno_se_matricula_asignatura.id_curso_escolar = curso_escolar.id WHERE curso_escolar.anyo_inicio="2018";
 
-/* Resolgui les 6 següents consultes utilitzant les clàusules LEFT JOIN i RIGHT JOIN. */
+
+
+/* LEFT JOIN i RIGHT JOIN  */
 
 
 /* Retorna un llistat amb els noms de tots els professors i els departaments que tenen vinculats. El llistat també ha de mostrar aquells professors que no tenen cap departament associat. El llistat ha de retornar quatre columnes, nom del departament, primer cognom, segon cognom i nom del professor. El resultat estarà ordenat alfabèticament de menor a major pel nom del departament, cognoms i el nom. */
 
-SELECT departamento.nombre AS `Departamento asociado`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`, persona.nombre AS `Nombre`  FROM `persona`  JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
+SELECT departamento.nombre AS `Departamento asociado`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`, persona.nombre AS `Nombre`  FROM `persona`  LEFT JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
 
 /*Retorna un llistat amb els professors que no estan associats a un departament.*/
 
-SELECT departamento.nombre AS `Nombre departamento`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`,  persona.nombre AS `Nombre del profesor`  FROM `persona`  JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id WHERE tipo="profesor" AND departamento.nombre IS NULL ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
+SELECT departamento.nombre AS `Nombre departamento`, persona.apellido1 AS `Primer nombre`, persona.apellido2 AS `Segundo nombre`,  persona.nombre AS `Nombre del profesor`  FROM `persona`  LEFT JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id WHERE departamento.nombre IS NULL AND persona.tipo="profesor" ORDER BY departamento.nombre, persona.apellido1, persona.apellido2 ASC;
 
 /*Retorna un llistat amb els departaments que no tenen professors associats.*/
 
@@ -224,7 +230,7 @@ SELECT departamento.nombre AS `Nombre de departamento`,  profesor.id_profesor AS
 
 /*Retorna un llistat amb els professors que no imparteixen cap assignatura.*/
 
-SELECT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS Nombre, asignatura.nombre AS `Nombre asignatura` FROM `persona` JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
+SELECT persona.apellido1 AS `1º apellido`, persona.apellido2 AS `2º apellido`, persona.nombre AS Nombre, asignatura.nombre AS `Nombre asignatura` FROM `persona` RIGHT JOIN `profesor` ON persona.id = profesor.id_profesor LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
 
 /*Retorna un llistat amb les assignatures que no tenen un professor assignat.*/
 
@@ -232,24 +238,23 @@ SELECT asignatura.nombre AS `Nombre asignatura`, persona.nombre AS `Profesor aso
 
 /*Retorna un llistat amb tots els departaments que no han impartit assignatures en cap curs escolar.*/
 
-SELECT departamento.nombre AS `Nombre departamento`, asignatura.nombre AS `Nombre asignatura` FROM  `profesor`  JOIN `departamento` ON profesor.id_departamento = departamento.id LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor WHERE asignatura.nombre IS NULL;
+SELECT DISTINCT departamento.nombre AS `Nombre departamento`, asignatura.nombre AS `Nombre asignatura` FROM  `profesor`  LEFT JOIN `departamento` ON profesor.id_departamento = departamento.id LEFT JOIN `asignatura` ON profesor.id_profesor = asignatura.id_profesor LEFT JOIN alumno_se_matricula_asignatura ON id_asignatura = id_alumno LEFT JOIN curso_escolar ON id_curso_escolar = curso_escolar.id  WHERE asignatura.nombre IS NULL;
 
 
 /*  CONSULTAS RESUMEN   */
 
 
-
 /* Retorna el nombre total d'alumnes que hi ha. */
 
-SELECT COUNT(persona.id) AS `Número total de alumnos` FROM `persona`;
+SELECT COUNT(persona.id) AS `Número total de alumnos` FROM `persona` WHERE persona.tipo = 'alumno';
 
 /* Calcula quants alumnes van néixer en 1999.*/
 
-SELECT COUNT(persona.fecha_nacimiento) AS `Alumnos nacidos en 1999` FROM `persona`  WHERE persona.fecha_nacimiento LIKE "1999%";
+SELECT COUNT(persona.fecha_nacimiento) AS `Alumnos nacidos en 1999` FROM `persona`  WHERE persona.fecha_nacimiento LIKE "1999%" AND persona.tipo = 'alumno';
 
 /* Calcula quants professors hi ha en cada departament. El resultat només ha de mostrar dues columnes, una amb el nom del departament i una altra amb el nombre de professors que hi ha en aquest departament. El resultat només ha d'incloure els departaments que tenen professors associats i haurà d'estar ordenat de major a menor pel nombre de professors.*/
 
-SELECT departamento.nombre AS `Nombre del departamento`, COUNT(profesor.id_profesor) AS `Número de profesores` FROM `persona` JOIN `profesor` ON  persona.id = profesor.id_profesor JOIN `departamento` ON profesor.id_departamento = departamento.id group by departamento.nombre;
+SELECT departamento.nombre AS `Nombre del departamento`, COUNT(profesor.id_profesor) AS `Número de profesores` FROM `persona` JOIN `profesor` ON  persona.id = profesor.id_profesor JOIN `departamento` ON profesor.id_departamento = departamento.id group by departamento.nombre ORDER BY `Número de profesores` DESC;
 
 /* Retorna un llistat amb tots els departaments i el nombre de professors que hi ha en cadascun d'ells. Tingui en compte que poden existir departaments que no tenen professors associats. Aquests departaments també han d'aparèixer en el llistat.*/
 
@@ -257,19 +262,19 @@ SELECT departamento.nombre AS `Nombre del departamento`, COUNT(profesor.id_profe
 
 /* Retorna un llistat amb el nom de tots els graus existents en la base de dades i el nombre d'assignatures que té cadascun. Tingui en compte que poden existir graus que no tenen assignatures associades. Aquests graus també han d'aparèixer en el llistat. El resultat haurà d'estar ordenat de major a menor pel nombre d'assignatures.*/
 
-SELECT grado.nombre AS `Nombre del grado`, count(asignatura.nombre) AS `Número asignaturas asociadas` FROM `grado` LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado GROUP BY grado.nombre ORDER BY asignatura.nombre ASC ; 
+SELECT grado.nombre AS `Nombre del grado`, count(asignatura.nombre) AS `Número asignaturas asociadas` FROM `grado` LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado GROUP BY grado.nombre ORDER BY asignatura.nombre DESC ;
 
 /* Retorna un llistat amb el nom de tots els graus existents en la base de dades i el nombre d'assignatures que té cadascun, dels graus que tinguin més de 40 assignatures associades. */
 
-SELECT grado.nombre AS `Nombre del grado`, COUNT(asignatura.id_grado) AS `Número de asignaturas` FROM `grado` LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado group by asignatura.id_grado HAVING COUNT(asignatura.id_grado > 40); 
+/* Ok corrijo pero el enunciado no dice MÁS de 40?  ¯\_(ツ)_/¯ */   SELECT grado.nombre AS `Nombre del grado`, COUNT(asignatura.id_grado) AS `Número de asignaturas` FROM `grado`  LEFT JOIN `asignatura` ON grado.id = asignatura.id_grado group by grado.nombre HAVING `Número de asignaturas` < 40;
 
 /* Retorna un llistat que mostri el nom dels graus i la suma del nombre total de crèdits que hi ha per a cada tipus d'assignatura. El resultat ha de tenir tres columnes: nom del grau, tipus d'assignatura i la suma dels crèdits de totes les assignatures que hi ha d'aquest tipus. */
 
-SELECT grado.nombre AS `Nombre del grado`, asignatura.tipo AS `Tipo de asignatura`, SUM(asignatura.creditos) AS `Suma total de créditos` FROM `grado` JOIN `asignatura` ON  asignatura.id_grado = grado.id group by asignatura.tipo;
+SELECT grado.nombre AS `Nombre del grado`, asignatura.tipo AS `Tipo de asignatura`, SUM(asignatura.creditos) AS `Suma de créditos` FROM asignatura join grado ON grado.id = asignatura.id_grado GROUP BY grado.nombre, asignatura.tipo;
 
 /* Retorna un llistat que mostri quants alumnes s'han matriculat d'alguna assignatura en cadascun dels cursos escolars. El resultat haurà de mostrar dues columnes, una columna amb l'any d'inici del curs escolar i una altra amb el nombre d'alumnes matriculats. */
 
-SELECT curso_escolar.anyo_inicio AS `Año de inicio`, COUNT(persona.id) AS `Número de alumnos matriculados` FROM `persona` JOIN alumno_se_matricula_asignatura ON persona.id = alumno_se_matricula_asignatura.id_alumno JOIN `asignatura` ON alumno_se_matricula_asignatura.id_asignatura = asignatura.id JOIN `curso_escolar` ON alumno_se_matricula_asignatura.id_curso_escolar = curso_escolar.id group by asignatura.nombre;
+select curso_escolar.anyo_inicio as `Curso escolar`, count(distinct persona.id) as `Número de alumnos matriculados` from curso_escolar left join alumno_se_matricula_asignatura ON curso_escolar.id = alumno_se_matricula_asignatura.id_curso_escolar left join persona on alumno_se_matricula_asignatura.id_alumno = persona.id group by curso_escolar.anyo_inicio; 
 
 /* Retorna un llistat amb el nombre d'assignatures que imparteix cada professor. El llistat ha de tenir en compte aquells professors que no imparteixen cap assignatura. El resultat mostrarà cinc columnes: id, nom, primer cognom, segon cognom i nombre d'assignatures. El resultat estarà ordenat de major a menor pel nombre d'assignatures. */
 
